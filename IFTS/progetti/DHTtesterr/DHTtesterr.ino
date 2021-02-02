@@ -36,6 +36,7 @@ void setup() {
   Serial.print(F("Humidity\t"));
   Serial.print(F("Temperature\t"));
   Serial.println(F("Heat_index"));
+  Serial.println(F("Stato"));
 }
 
 void loop() {
@@ -73,5 +74,5 @@ void loop() {
   //Serial.println(F("°F"));
 
   // Wait a few seconds between measurements.
-  delay(2000);
+  delay(5000);
 }
