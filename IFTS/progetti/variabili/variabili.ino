@@ -2,6 +2,7 @@ int temperatura; //definito variabile di tipo intero
 bool pulsante; //definito una variabile booleana
 
 
+
 void setup() {
   pinMode(13, OUTPUT);
   pinMode(12, INPUT_PULLUP);
