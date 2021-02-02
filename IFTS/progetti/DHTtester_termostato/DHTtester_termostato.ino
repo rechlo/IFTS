@@ -29,6 +29,10 @@
 // as the current DHT reading algorithm adjusts itself to work on faster procs.
 DHT dht(DHTPIN, DHTTYPE);
 
+// Temperqatura di scambio
+#define TEMPERATURA 26
+#define ISTERESI 1
+
 void setup() {
   Serial.begin(9600);
   //Serial.println(F("DHTxx test!"));
@@ -76,13 +80,14 @@ void loop() {
   //Serial.print(hif);
   //Serial.println(F("°F"));
 
-  if (t < 23) {
+  if ( t < TEMPERATURA ) {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println(1);
   } else {
     digitalWrite(LED_BUILTIN, LOW);
     Serial.println(0);
   }
+  
   // Wait a few seconds between measurements.
   delay(5000);
 }
