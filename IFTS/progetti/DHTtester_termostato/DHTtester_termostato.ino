@@ -29,9 +29,10 @@
 // as the current DHT reading algorithm adjusts itself to work on faster procs.
 DHT dht(DHTPIN, DHTTYPE);
 
-// Temperqatura di scambio
+// Temperatura di scambio
 #define TEMPERATURA 26
-#define ISTERESI 1
+#define ISTERESI 0,5
+bool stato;
 
 void setup() {
   Serial.begin(9600);
@@ -52,7 +53,6 @@ void loop() {
   float t = dht.readTemperature();
   // Read temperature as Fahrenheit (isFahrenheit = true)
   //float f = dht.readTemperature(true);
-  bool stato;
 
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t)) {
@@ -75,19 +75,20 @@ void loop() {
   //Serial.print(f);
   //Serial.print(F("°F  Heat index: "));
   Serial.print(hic);
-  Serial.print("\t")
+  Serial.print("\t");
   //Serial.print(F("°C "));
   //Serial.print(hif);
   //Serial.println(F("°F"));
 
-  if ( t < TEMPERATURA ) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    Serial.println(1);
-  } else {
-    digitalWrite(LED_BUILTIN, LOW);
-    Serial.println(0);
+  if ( t < TEMPERATURA - ISTERESI ) {
+    stato = true;
+    digitalWrite(LED_BUILTIN, stato);
+  } else if (  t > TEMPERATURA + ISTERESI ) {
+    stato = false;
+    digitalWrite(LED_BUILTIN, stato);
   }
-  
+  Serial.println(stato);
+
   // Wait a few seconds between measurements.
   delay(5000);
 }
