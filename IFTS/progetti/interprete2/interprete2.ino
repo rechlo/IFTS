@@ -3,8 +3,6 @@
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(9600);
-
-  Serial.println("Accende e spegne il LED con la seriale");
   Serial.println("l lampeggia il LED ");
 }
 
@@ -19,11 +17,15 @@ void loop() {
       if (comando >= 49 && comando <= 57) {
         comando = comando - 48; // 57=9 48=0 Tabella ASCII
         Serial.print(comando);
-        Serial.println("volte");
+        Serial.println(" volte");
+         unsigned char sec = Serial.read();
+         if (sec >= 49 && sec <= 57);
+         Serial.print(sec);
+        Serial.println(" millisecondi");
         for ( unsigned char lampeggi = 0; lampeggi < comando; lampeggi++) {
           digitalWrite(LED_BUILTIN, HIGH);
           Serial.println("acceso");
-          delay(500);
+          delay(100*sec);
           digitalWrite(LED_BUILTIN, LOW);
           Serial.println("spento");
           delay(500);
