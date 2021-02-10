@@ -16,6 +16,8 @@ void loop() {
   if (Serial.available()) {
     String stringa = Serial.readString();
     Serial.println(stringa);
+     lcd.setCursor(0, 0);
+    lcd.print("                ");
     lcd.setCursor(0, 0);
     lcd.print("                ");
     //lcd.clear();
@@ -23,7 +25,7 @@ void loop() {
     lcd.print(stringa);
   }
 
-  lcd.setCursor(0, 1);
+ // lcd.setCursor(0, 1);
   // print the number of seconds since reset:
-  lcd.print(millis() / 1000);
+ // lcd.print(millis() / 1000);
 }
