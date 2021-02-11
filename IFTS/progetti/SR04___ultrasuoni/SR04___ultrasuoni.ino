@@ -13,15 +13,16 @@ void setup() {
 
 void loop() {
   digitalWrite(trigPin, LOW);
-  delay(10);
+  delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
-  delay(10);
+  delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
 
   duration = pulseIn(echoPin, HIGH);
   distanceCm = duration * 0.034 / 2;
   lcd.setCursor(0, 0);
-  lcd.print("Distance: ");
+  lcd.print("lunghezza: ");
+    lcd.setCursor(5, 1);
   lcd.print(distanceCm);
   lcd.print(" cm");
   delay (10);
