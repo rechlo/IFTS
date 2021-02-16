@@ -32,29 +32,39 @@
 */
 
 // inizializza i pin dei bottoni:
-const int buttonPin1 = 3;     // the number of the pushbutton pin
-const int buttonPin2 = 4;     // the number of the pushbutton pin
+#define BUTTON_PIN_1 3      // the number of the pushbutton pin
+#define BUTTON_PIN_2 4    // the number of the pushbutton pin
 
 // variables will change:
-int buttonState1 = 0;         // variable for reading the pushbutton status
-int buttonState2 = 0;         // variable for reading the pushbutton status
+boolean buttonState1 = 0;         // variable for reading the pushbutton status
+boolean buttonState2 = 0;         // variable for reading the pushbutton status
 
-int oldbuttonState1 = 1;         // variable for reading the pushbutton status
-int oldbuttonState2 = 1;         // variable for reading the pushbutton status
+boolean blink;
+
+boolean oldbuttonState1 = 1;         // variable for reading the pushbutton status
+boolean oldbuttonState2 = 1;         // variable for reading the pushbutton status
+
 unsigned long lastButtonPressed;
 
 // imposta la soglia standard
 float soglia = 26;
-#define soglia_max 35
-#define soglia_min 5
-
+#define SOGLIA_MAX 35
+#define SOGLIA_MIN 5
 // imposta l'isteresi
-#define isteresi 1.0
+#define ISTERESI 1.0
+// imposta la calibrazione del sensore di temperatura
+float correzione = -1;
+#define VARIAZIONE .1
+
+#define SOGLIA_ADDRESS 0
+#define CONTROLL_ADRESS 255
 
 // include the library code:
 #include <LiquidCrystal.h>
 
 #include "DHT.h"
+
+#include <EEPROM.h>
 
 #define DHTPIN 2     // Digital pin connected to the DHT sensor
 // Feather HUZZAH ESP8266 note: use pins 3, 4, 5, 12, 13 or 14 --
@@ -79,8 +89,8 @@ unsigned long tempo;
 void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  Serial.begin(9600);
-  Serial.println(soglia - (isteresi / 2));
+  //Serial.begin(9600);
+  //Serial.println(soglia - (isteresi / 2));
   //Serial.print("umidita'");
   //Serial.print("\t");
   //Serial.println("temperatura");
@@ -92,8 +102,19 @@ void setup() {
   dht.begin();
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  pinMode(buttonPin1, INPUT_PULLUP);
-  pinMode(buttonPin2, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_1, INPUT_PULLUP);
+  pinMode(BUTTON_PIN_2, INPUT_PULLUP);
+  unsigned char controllo = EEPROM.read(CONTROLL_ADRESS);
+  //Serial.println(controllo);
+  if ( controllo == 123 ) {
+    //Serial.println("ok");
+    EEPROM.get(SOGLIA_ADDRESS,soglia);
+  } else {
+    //Serial.println("format");
+    EEPROM.put(SOGLIA_ADDRESS, soglia);
+    controllo = 123;
+    EEPROM.put(CONTROLL_ADRESS, controllo);
+  }
 }
 
 void loop() {
@@ -104,13 +125,14 @@ void loop() {
   // print the number of seconds since reset:
   //lcd.print(millis() / 1000);
 
-  buttonState1 = digitalRead(buttonPin1);
-  buttonState2 = digitalRead(buttonPin2);
+  buttonState1 = digitalRead(BUTTON_PIN_1);
+  buttonState2 = digitalRead(BUTTON_PIN_2);
 
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-  if (buttonState1 == LOW && soglia < soglia_max && oldbuttonState1 == HIGH && millis() > (lastButtonPressed + 100)) {
+  if (buttonState1 == LOW && soglia < SOGLIA_MAX && oldbuttonState1 == HIGH && millis() > (lastButtonPressed + 100)) {
     // aumenta la soglia;
-    soglia = soglia + .5;
+    soglia = soglia + VARIAZIONE;
+    EEPROM.put(SOGLIA_ADDRESS, soglia);
     oldbuttonState1 = buttonState1;
     //lastButtonPressed = millis();
   } else if ( buttonState1 == HIGH && oldbuttonState1 == LOW) {
@@ -118,9 +140,10 @@ void loop() {
     lastButtonPressed = millis();
   }
 
-  if ( buttonState2 == LOW && soglia > soglia_min && oldbuttonState2 == HIGH && millis() > (lastButtonPressed + 100)) {
+  if ( buttonState2 == LOW && soglia > SOGLIA_MIN && oldbuttonState2 == HIGH && millis() > (lastButtonPressed + 100)) {
     // diminuisce la soglia;
-    soglia = soglia - .5;
+    soglia = soglia - VARIAZIONE;
+    EEPROM.put(SOGLIA_ADDRESS, soglia);
     oldbuttonState2 = buttonState2;
     //lastButtonPressed = millis();
   } else if ( buttonState2 == HIGH && oldbuttonState2 == LOW ) {
@@ -129,6 +152,16 @@ void loop() {
   }
 
   if ((millis() - tempo) > 500) {
+    lcd.setCursor(15, 0);
+    
+    if ( blink ) {
+      lcd.print(".");
+      blink = false;
+    } else {
+      lcd.print(" ");
+      blink = true;
+    }
+    
     tempo = millis();
     lcd.setCursor(0, 1);
     // Reading temperature or humidity takes about 250 milliseconds!
@@ -136,16 +169,17 @@ void loop() {
     int h = dht.readHumidity();
     // Read temperature as Celsius (the default)
     float t = dht.readTemperature();
+    t = t + correzione;
     lcd.print("H:");
     lcd.print(h);
     lcd.setCursor(6, 1);
     lcd.print("T:");
     lcd.print(t, 1);
     lcd.setCursor(13, 1);
-    if ( t > ( soglia + (isteresi / 2) )) {
+    if ( t > ( soglia + (ISTERESI / 2) )) {
       lcd.print("off ");
       digitalWrite(LED_BUILTIN, LOW);
-    } else if ( t < ( soglia - (isteresi / 2)) ) {
+    } else if ( t < ( soglia - (ISTERESI / 2)) ) {
       lcd.print("on ");
       digitalWrite(LED_BUILTIN, HIGH);
     }
